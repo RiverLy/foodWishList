@@ -1,86 +1,92 @@
 (function ($) {
-
-    // 검색 결과 vue object
+    getWishList();
     var search_result = new Vue({
         el: '#search-result',
         data: {
             search_result : {}
         },
-        method: {
-            wishButton: function (event) {
+        methods: {
+
+            addWish: function (item) {
                 console.log("add");
+                $.ajax({
+                    type: "POST" ,
+                    async: true ,
+                    url: "/api/food",
+                    timeout: 3000,
+                    data: JSON.stringify(item),
+                    contentType: "application/json",
+                    error: function (request, status, error) {
+
+                    },
+                    success: function (response, status, request) {
+                        if(window.confirm("위시리스트에 추가 되었습니다. 위시리스트로 이동하시겠습니까?")){
+                            window.location.assign("http://localhost:8080/pages/wishlist");
+                            getWishList();
+                        } else {
+
+                        }
+                    }
+                });
             }
         }
     });
 
-    // 맛집 목록 vue object
     var wish_list = new Vue({
         el: '#wish-list',
         data: {
             wish_list : {}
         },
         methods: {
-            addVisit: function (index) {
+            addVisit: function (id) {
                 $.ajax({
-                    type: "POST" ,
+                    type: "PUT" ,
                     async: true ,
-                    url: `/api/restaurant/${index}`,
+                    url: `/api/food/${id}`,
                     timeout: 3000
-                });
-
-                getWishList();
+                }).always(function() {
+                    getWishList();
+                    });
             },
-            deleteWish: function (index) {
+            deleteWish: function (id) {
                 $.ajax({
                     type: "DELETE" ,
                     async: true ,
-                    url: `/api/restaurant/${index}`,
+                    url: `/api/food/${id}`,
                     timeout: 3000
-                });
-                getWishList();
+                }).always(function() {
+                     getWishList();
+                     console.log(id);
+                     });
             }
         }
     });
 
-    // search
     $("#searchButton").click(function () {
         const query = $("#searchBox").val();
-        $.get(`/api/restaurant/search?query=${query}`, function (response) {
+        $.get(`/api/food/search?query=${query}`, function (response) {
             search_result.search_result = response;
             $('#search-result').attr('style','visible');
         });
     });
 
-    // Enter
     $("#searchBox").keydown(function(key) {
         if (key.keyCode === 13) {
             const query = $("#searchBox").val();
-            $.get(`/api/restaurant/search?query=${query}`, function (response) {
+            $.get(`/api/food/search?query=${query}`, function (response) {
                 search_result.search_result = response;
                 $('#search-result').attr('style','visible');
             });
         }
     });
 
-    $("#wishButton").click(function () {
-        $.ajax({
-            type: "POST" ,
-            async: true ,
-            url: "/api/restaurant",
-            timeout: 3000,
-            data: JSON.stringify(search_result.search_result),
-            contentType: "application/json",
-            error: function (request, status, error) {
-
-            },
-            success: function (response, status, request) {
-                getWishList();
-            }
-        });
+    $("#listButton").click(function (){
+        window.location.assign("http://localhost:8080/pages/wishlist");
+        getWishList();
     });
 
     function getWishList(){
-        $.get(`/api/restaurant/all`, function (response) {
+        $.get(`/api/food/all`, function (response) {
             wish_list.wish_list = response;
         });
     }

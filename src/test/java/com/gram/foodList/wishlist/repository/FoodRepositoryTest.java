@@ -57,6 +57,7 @@ public class FoodRepositoryTest {
 
         Assertions.assertEquals("Updated Title", updated.getTitle());
         Assertions.assertEquals(1, foodRepository.findAll().size());
+        Assertions.assertEquals(original.getId(), updated.getId());
 
     }
 
